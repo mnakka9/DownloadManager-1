@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="Classes\Downloader.cs" />
     <Compile Include="Classes\DownloaderHelper.cs" />
+    <Compile Include="Classes\DownloadsManager.cs" />
     <Compile Include="Classes\HttpDownloadClient.cs" />
     <Compile Include="DownloadEventArgs\DownloadCompletedEventArgs.cs" />
     <Compile Include="DownloadEventArgs\DownloadProgressChangedEventArgs.cs" />

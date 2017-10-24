@@ -8,7 +8,7 @@ using DownloadManager.Core.DownloadEventArgs;
 
 namespace DownloadManager.Core.Classes
 {
-    class HttpDownloadClient: IDownloader
+    public class HttpDownloadClient: IDownloader
     {
         #region Fields and Properties
 
@@ -57,6 +57,8 @@ namespace DownloadManager.Core.Classes
                 }
             }
         }
+
+        public Thread DownloadThread { get; set; }
         
         private TimeSpan usedTime = new TimeSpan();
 
@@ -132,12 +134,7 @@ namespace DownloadManager.Core.Classes
         {
             fileName = DownloaderHelper.CheckUrl(this);
         }
-
-
-        /// <summary>
-        /// Check whether the destination file exists. If not, create a file with the same
-        /// size as the file to be downloaded.
-        /// </summary>
+        
         void CheckFileOrCreateFile()
         {
             DownloaderHelper.CheckFileOrCreateFile(this, fileLocker);
@@ -175,18 +172,12 @@ namespace DownloadManager.Core.Classes
                 throw new ApplicationException("Only Initialized download client can be started.");
 
             Status = DownloadStatus.Waiting;
-                        
-            DownloadInternal(null);
-        }
-        
-        public void BeginDownload()
-        {
-            if (Status != DownloadStatus.Initialized)
-                throw new ApplicationException("Only Initialized download client can be started.");
 
-            Status = DownloadStatus.Waiting;
-
-            ThreadPool.QueueUserWorkItem(DownloadInternal);
+            DownloadThread = new Thread(new ThreadStart(DownloadInternal))
+            {
+                IsBackground = true
+            };
+            DownloadThread.Start();
         }
         
         public void Pause()
@@ -203,17 +194,7 @@ namespace DownloadManager.Core.Classes
 
             Status = DownloadStatus.Waiting;
             
-            DownloadInternal(null);
-        }
-        
-        public void BeginResume()
-        {
-            if (Status != DownloadStatus.Paused)
-                throw new ApplicationException("Only paused client can be resumed.");
-
-            Status = DownloadStatus.Waiting;
-
-            ThreadPool.QueueUserWorkItem(DownloadInternal);
+            DownloadInternal();
         }
         
         public void Cancel()
@@ -227,7 +208,7 @@ namespace DownloadManager.Core.Classes
                 Status = DownloadStatus.Canceling;
         }
         
-        void DownloadInternal(object obj)
+        void DownloadInternal()
         {
             if (Status != DownloadStatus.Waiting)
                 return;
@@ -264,7 +245,7 @@ namespace DownloadManager.Core.Classes
                 
                 downloadCache = new MemoryStream(MaxCacheSize);
 
-                byte[] downloadBuffer = new byte[this.BufferSize];
+                byte[] downloadBuffer = new byte[BufferSize];
 
                 int bytesSize = 0;
                 CachedSize = 0;
@@ -320,7 +301,6 @@ namespace DownloadManager.Core.Classes
                     Status = DownloadStatus.Completed;
                     return;
                 }
-
             }
             catch (Exception ex)
             {
@@ -379,8 +359,7 @@ namespace DownloadManager.Core.Classes
             lastNotificationDownloadedSize = DownloadedSize + cachedSize;
 
             OnDownloadProgressChanged(new DownloadEventArgs.DownloadProgressChangedEventArgs(DownloadedSize + cachedSize, TotalSize, speed));
-
-
+            
         }
 
         protected virtual void OnDownloadProgressChanged(DownloadEventArgs.DownloadProgressChangedEventArgs e)

@@ -1,6 +1,6 @@
 ﻿namespace DownloadManager.Core.Enums
 {
-    enum DownloadStatus
+    public enum DownloadStatus
     {
         Initialized,
         Waiting,

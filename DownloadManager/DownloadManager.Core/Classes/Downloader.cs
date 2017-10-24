@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Linq;
 using System.Threading;
+using System.ComponentModel;
 using System.Collections.Generic;
 using DownloadManager.Core.Enums;
 using DownloadManager.Core.Interfaces;
@@ -10,13 +11,15 @@ using DownloadManager.Core.DownloadEventArgs;
 
 namespace DownloadManager.Core.Classes
 {
-    class Downloader : IDownloader
+    public class Downloader : IDownloader, INotifyPropertyChanged
     {
         #region Fields and Properties
 
         static object locker = new object();
                 
         public Uri Url { get; private set; }
+
+        public Thread DownloadThread { get; set; }
 
         public ICredentials Credentials { get; set; }
         
@@ -47,7 +50,18 @@ namespace DownloadManager.Core.Classes
                 return downloadClients.Sum(client => client.CachedSize);
             }
         }
-        
+
+        public int Progress
+        {
+            get
+            {
+                if (TotalSize != 0)
+                    return Convert.ToInt32(DownloadedSize * 100 / TotalSize);
+                else
+                    return 0;
+            }
+        }
+
         private TimeSpan usedTime = new TimeSpan();
 
         private DateTime lastStartTime;
@@ -109,11 +123,7 @@ namespace DownloadManager.Core.Classes
 
         #region Events
 
-        public event EventHandler<DownloadEventArgs.DownloadProgressChangedEventArgs> DownloadProgressChanged;
-
-        public event EventHandler<DownloadCompletedEventArgs> DownloadCompleted;
-
-        public event EventHandler StatusChanged;
+        public event PropertyChangedEventHandler PropertyChanged;
 
         #endregion        
 
@@ -190,45 +200,16 @@ namespace DownloadManager.Core.Classes
             if (Status != DownloadStatus.Initialized)
                 throw new ApplicationException("Only Initialized download client can be started.");
 
-            EnsurePropertyValid();
-
-            Status = DownloadStatus.Downloading;
-
-            if (!HasChecked)
-            {
-                string filename = null;
-                CheckUrlAndFile(out filename);
-            }
-
-            HttpDownloadClient client = new HttpDownloadClient(Url.AbsoluteUri, 0, long.MaxValue,
-                BufferSize, BufferCountPerNotification * BufferSize, BufferCountPerNotification)
-            {
-                TotalSize = TotalSize,
-                DownloadPath = DownloadPath,
-                HasChecked = true,
-                Credentials = Credentials,
-                Proxy = Proxy
-            };
-
-            client.DownloadProgressChanged += client_DownloadProgressChanged;
-            client.StatusChanged += client_StatusChanged;
-            client.DownloadCompleted += client_DownloadCompleted;
-
-            downloadClients.Add(client);
-            client.Download();
-        }
-        
-        public void BeginDownload()
-        {
-            if (Status != DownloadStatus.Initialized)
-                throw new ApplicationException("Only Initialized download client can be started.");
-
             Status = DownloadStatus.Waiting;
 
-            ThreadPool.QueueUserWorkItem(DownloadInternal);
+            DownloadThread = new Thread(new ThreadStart(DownloadInternal))
+            {
+                IsBackground = true
+            };
+            DownloadThread.Start();
         }
 
-        void DownloadInternal(object obj)
+        void DownloadInternal()
         {
 
             if (Status != DownloadStatus.Waiting)
@@ -241,10 +222,7 @@ namespace DownloadManager.Core.Classes
                 Status = DownloadStatus.Downloading;
 
                 if (!HasChecked)
-                {
-                    string filename = null;
-                    CheckUrlAndFile(out filename);
-                }
+                    CheckUrlAndFile(out string filename);
 
                 if (!IsRangeSupported)
                 {
@@ -307,7 +285,7 @@ namespace DownloadManager.Core.Classes
                     client.StatusChanged += client_StatusChanged;
                     client.DownloadCompleted += client_DownloadCompleted;
                     
-                    client.BeginDownload();
+                    client.Download();
                 }
             }
             catch (Exception ex)
@@ -331,7 +309,7 @@ namespace DownloadManager.Core.Classes
         
         public void Resume()
         {
-            if (this.Status != DownloadStatus.Paused)
+            if (Status != DownloadStatus.Paused)
                 throw new ApplicationException("Only paused downloader can be resumed. ");
 
             lastStartTime = DateTime.Now;
@@ -341,26 +319,10 @@ namespace DownloadManager.Core.Classes
             foreach (var client in downloadClients)
                 if (client.Status != DownloadStatus.Completed)
                     client.Resume();
-        }
-
-        public void BeginResume()
-        {
-            if (Status != DownloadStatus.Paused)
-                throw new ApplicationException("Only paused downloader can be resumed. ");
-            
-            lastStartTime = DateTime.Now;
-            
-            this.Status = DownloadStatus.Waiting;
-
-            foreach (var client in downloadClients)
-                if (client.Status != DownloadStatus.Completed)
-                    client.BeginResume();
-
-        }
+        }        
         
         public void Cancel()
         {
-
             if (Status == DownloadStatus.Initialized || Status == DownloadStatus.Waiting || Status == DownloadStatus.Completed
                 || Status == DownloadStatus.Paused || Status == DownloadStatus.Canceled)
             {
@@ -402,28 +364,24 @@ namespace DownloadManager.Core.Classes
         {
             lock (locker)
             {
-                if (DownloadProgressChanged != null)
-                {
-                    int speed = 0;
-                    DateTime current = DateTime.Now;
-                    TimeSpan interval = current - lastNotificationTime;
+                int speed = 0;
+                DateTime current = DateTime.Now;
+                TimeSpan interval = current - lastNotificationTime;
 
-                    if (interval.TotalSeconds < 60)
-                        speed = (int)Math.Floor((DownloadedSize + CachedSize - lastNotificationDownloadedSize) / interval.TotalSeconds);
+                if (interval.TotalSeconds < 60)
+                    speed = (int)Math.Floor((DownloadedSize + CachedSize - lastNotificationDownloadedSize) / interval.TotalSeconds);
 
-                    lastNotificationTime = current;
-                    lastNotificationDownloadedSize = DownloadedSize + CachedSize;
+                lastNotificationTime = current;
+                lastNotificationDownloadedSize = DownloadedSize + CachedSize;
 
-                    var downloadProgressChangedEventArgs = new DownloadEventArgs.DownloadProgressChangedEventArgs(DownloadedSize, TotalSize, speed);
-                    OnDownloadProgressChanged(downloadProgressChangedEventArgs);
-                }
-
+                var downloadProgressChangedEventArgs = new DownloadEventArgs.DownloadProgressChangedEventArgs(DownloadedSize, TotalSize, speed);
+                OnDownloadProgressChanged(downloadProgressChangedEventArgs);
             }
         }
         
         void client_DownloadCompleted(object sender, DownloadCompletedEventArgs e)
         {
-            if (e.Error != null && Status != DownloadStatus.Canceling && Status != DownloadStatus.Canceled)
+            if (e.Error != null && Status != DownloadStatus.Canceled)
             {
                 Cancel();
                 OnDownloadCompleted(new DownloadCompletedEventArgs(null, DownloadedSize, TotalSize, TotalUsedTime, e.Error));
@@ -431,26 +389,13 @@ namespace DownloadManager.Core.Classes
         }
         
         protected virtual void OnDownloadProgressChanged(DownloadEventArgs.DownloadProgressChangedEventArgs e)
-        {
-            DownloadProgressChanged?.Invoke(this, e);
+        { 
+            OnPropertyChanged("Progress");
+            OnPropertyChanged("DownloadedSize");
         }
         
         protected virtual void OnStatusChanged(EventArgs e)
         {
-
-            switch (Status)
-            {
-                case DownloadStatus.Waiting:
-                case DownloadStatus.Downloading:
-                case DownloadStatus.Paused:
-                case DownloadStatus.Canceled:
-                case DownloadStatus.Completed:
-                    StatusChanged?.Invoke(this, e);
-                    break;
-                default:
-                    break;
-            }
-
             if (Status == DownloadStatus.Paused || Status == DownloadStatus.Canceled || Status == DownloadStatus.Completed)
                 usedTime += DateTime.Now - lastStartTime;
             
@@ -462,11 +407,19 @@ namespace DownloadManager.Core.Classes
 
             if (Status == DownloadStatus.Completed)
                 OnDownloadCompleted(new DownloadCompletedEventArgs(new FileInfo(DownloadPath), DownloadedSize, TotalSize, TotalUsedTime, null));
+
+            OnPropertyChanged("Status");
         }
         
         protected virtual void OnDownloadCompleted(DownloadCompletedEventArgs e)
         {
-            DownloadCompleted?.Invoke(this, e);
+            OnPropertyChanged("Progress");
+            OnPropertyChanged("Status");
+        }
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         #endregion

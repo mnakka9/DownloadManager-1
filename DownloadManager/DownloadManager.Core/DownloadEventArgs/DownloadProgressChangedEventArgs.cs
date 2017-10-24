@@ -2,7 +2,7 @@
 
 namespace DownloadManager.Core.DownloadEventArgs
 {
-    class DownloadProgressChangedEventArgs: EventArgs
+    public class DownloadProgressChangedEventArgs: EventArgs
     {
         public long ReceivedSize { get; private set; }
         public long TotalSize { get; private set; }

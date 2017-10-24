@@ -3,7 +3,7 @@ using System.IO;
 
 namespace DownloadManager.Core.DownloadEventArgs
 {
-    class DownloadCompletedEventArgs: EventArgs
+    public class DownloadCompletedEventArgs: EventArgs
     {
         public long DownloadedSize { get; private set; }
         public long TotalSize { get; private set; }

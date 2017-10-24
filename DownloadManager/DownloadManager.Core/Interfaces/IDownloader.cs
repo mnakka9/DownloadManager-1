@@ -5,7 +5,7 @@ using DownloadManager.Core.DownloadEventArgs;
 
 namespace DownloadManager.Core.Interfaces
 {
-    interface IDownloader
+    public interface IDownloader
     {
         #region Basic settings of a WebDownloader.
 
@@ -46,20 +46,13 @@ namespace DownloadManager.Core.Interfaces
 
         #endregion
 
-
-        event EventHandler<DownloadCompletedEventArgs> DownloadCompleted;
-        event EventHandler<DownloadEventArgs.DownloadProgressChangedEventArgs> DownloadProgressChanged;
-        event EventHandler StatusChanged;
-
         void CheckUrl(out string fileName);
-
-        void BeginDownload();
+        
         void Download();
 
         void Pause();
 
         void Resume();
-        void BeginResume();
 
         void Cancel();
     }

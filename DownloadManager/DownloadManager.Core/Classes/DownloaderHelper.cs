@@ -6,7 +6,7 @@ using DownloadManager.Core.Interfaces;
 
 namespace DownloadManager.Core.Classes
 {
-    class DownloaderHelper
+    public class DownloaderHelper
     {
         public static HttpWebRequest InitializeHttpWebRequest(IDownloader downloader)
         {
