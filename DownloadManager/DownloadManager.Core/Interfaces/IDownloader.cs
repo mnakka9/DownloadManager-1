@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net;
 using DownloadManager.Core.Enums;
-using DownloadManager.Core.DownloadEventArgs;
 
 namespace DownloadManager.Core.Interfaces
 {
@@ -50,10 +49,6 @@ namespace DownloadManager.Core.Interfaces
         
         void Download();
 
-        void Pause();
-
         void Resume();
-
-        void Cancel();
     }
 }

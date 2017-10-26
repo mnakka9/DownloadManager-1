@@ -8,7 +8,7 @@ using DownloadManager.Core.DownloadEventArgs;
 
 namespace DownloadManager.Core.Classes
 {
-    public class HttpDownloadClient: IDownloader
+    public class HttpDownloadClient: IDownloader, IObserver
     {
         #region Fields and Properties
 
@@ -180,13 +180,6 @@ namespace DownloadManager.Core.Classes
             DownloadThread.Start();
         }
         
-        public void Pause()
-        {
-            if (Status == DownloadStatus.Downloading)
-                Status = DownloadStatus.Pausing;
-            else throw new ApplicationException("Only downloading client can be paused.");            
-        }
-        
         public void Resume()
         {
             if (Status != DownloadStatus.Paused)
@@ -199,18 +192,7 @@ namespace DownloadManager.Core.Classes
                 IsBackground = true
             };
             DownloadThread.Start();            
-        }
-        
-        public void Cancel()
-        {
-            if (Status == DownloadStatus.Initialized || Status == DownloadStatus.Waiting || Status == DownloadStatus.Completed
-                || Status == DownloadStatus.Paused || Status == DownloadStatus.Canceled)
-            {
-                Status = DownloadStatus.Canceled;
-            }
-            else if (Status == DownloadStatus.Canceling || Status == DownloadStatus.Pausing || Status == DownloadStatus.Downloading)
-                Status = DownloadStatus.Canceling;
-        }
+        }        
         
         void DownloadInternal()
         {
@@ -335,6 +317,16 @@ namespace DownloadManager.Core.Classes
                     fileStream.Write(cacheContent, 0, cachedSize);
                 }
             }
+        }
+
+        public void UpdateStatus(DownloadStatus status)
+        {
+            Status = status;
+        }
+
+        public void Run()
+        {
+            Download();
         }
 
         #endregion

@@ -11,7 +11,7 @@ using DownloadManager.Core.DownloadEventArgs;
 
 namespace DownloadManager.Core.Classes
 {
-    public class Downloader : IDownloader, INotifyPropertyChanged
+    public class Downloader : IDownloader, INotifyPropertyChanged, IObservable
     {
         #region Fields and Properties
 
@@ -56,7 +56,7 @@ namespace DownloadManager.Core.Classes
         {
             get
             {
-                return downloadClients.Sum(client => client.DownloadedSize);
+                return downloadClients.Sum(client => (client as HttpDownloadClient).DownloadedSize);
             }
         }
 
@@ -88,7 +88,7 @@ namespace DownloadManager.Core.Classes
         {
             get
             {
-                return downloadClients.Sum(client => client.CachedSize);
+                return downloadClients.Sum(client => (client as HttpDownloadClient).CachedSize);
             }
         }
 
@@ -151,7 +151,7 @@ namespace DownloadManager.Core.Classes
 
         public bool HasChecked { get; set; }
         
-        List<HttpDownloadClient> downloadClients = null;
+        List<IObserver> downloadClients = null;
 
         public int DownloadThreadsCount
         {
@@ -192,7 +192,7 @@ namespace DownloadManager.Core.Classes
             
             ServicePointManager.DefaultConnectionLimit = maxThreadCount;
             
-            downloadClients = new List<HttpDownloadClient>();
+            downloadClients = new List<IObserver>();
 
             Status = DownloadStatus.Initialized;
         }
@@ -282,8 +282,11 @@ namespace DownloadManager.Core.Classes
                         Credentials = Credentials,
                         Proxy = Proxy
                     };
+                    client.DownloadProgressChanged += client_DownloadProgressChanged;
+                    client.StatusChanged += client_StatusChanged;
+                    client.DownloadCompleted += client_DownloadCompleted;
 
-                    downloadClients.Add(client);
+                    AddObserver(client);
                 }
                 else
                 {
@@ -315,23 +318,16 @@ namespace DownloadManager.Core.Classes
                             Credentials = Credentials,
                             Proxy = Proxy
                         };
+                        client.DownloadProgressChanged += client_DownloadProgressChanged;
+                        client.StatusChanged += client_StatusChanged;
+                        client.DownloadCompleted += client_DownloadCompleted;
 
-                        downloadClients.Add(client);
+                        AddObserver(client);
                     }
                 }
                 
                 lastStartTime = DateTime.Now;
-                foreach (var client in downloadClients)
-                {
-                    if (Proxy != null)
-                        client.Proxy = Proxy;
-                    
-                    client.DownloadProgressChanged += client_DownloadProgressChanged;
-                    client.StatusChanged += client_StatusChanged;
-                    client.DownloadCompleted += client_DownloadCompleted;
-                    
-                    client.Download();
-                }
+                RunObservers();
             }
             catch (Exception ex)
             {
@@ -346,9 +342,8 @@ namespace DownloadManager.Core.Classes
                 throw new ApplicationException("Only downloading downloader can be paused.");
 
             Status = DownloadStatus.Pausing;
-            
-            foreach (var client in downloadClients)
-                client.Pause();
+
+            UpdateObservers(DownloadStatus.Paused);
         }
         
         public void Resume()
@@ -370,13 +365,12 @@ namespace DownloadManager.Core.Classes
             if (Status == DownloadStatus.Initialized || Status == DownloadStatus.Waiting || Status == DownloadStatus.Completed
                 || Status == DownloadStatus.Paused || Status == DownloadStatus.Canceled)
             {
-                Status = DownloadStatus.Canceled;
+                UpdateObservers(DownloadStatus.Canceled);
             }
             else if (Status == DownloadStatus.Canceling || Status == DownloadStatus.Pausing || Status == DownloadStatus.Downloading)
-                Status = DownloadStatus.Canceling;
+                UpdateObservers(DownloadStatus.Canceling);
+
             
-            foreach (var client in downloadClients)
-                client.Cancel();
 
         }
 
@@ -390,6 +384,29 @@ namespace DownloadManager.Core.Classes
             }
             OnPropertyChanged("SizeString");
             OnPropertyChanged("Progress");
+        }
+
+        public void AddObserver(IObserver observer)
+        {
+            downloadClients.Add(observer);
+        }
+
+        public void UpdateObservers(DownloadStatus status)
+        {
+            foreach (var o in downloadClients)
+                o.UpdateStatus(status);
+        }
+
+        public void RunObservers()
+        {
+            foreach (var o in downloadClients)
+                o.Run();
+        }
+
+        public void ResumeObservers()
+        {
+            foreach (var o in downloadClients)
+                o.Resume();
         }
         
         #endregion

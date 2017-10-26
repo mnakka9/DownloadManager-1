@@ -49,6 +49,8 @@
     <Compile Include="DownloadEventArgs\DownloadProgressChangedEventArgs.cs" />
     <Compile Include="Enums\DownloadStatus.cs" />
     <Compile Include="Interfaces\IDownloader.cs" />
+    <Compile Include="Interfaces\IObservable.cs" />
+    <Compile Include="Interfaces\IObserver.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup />
