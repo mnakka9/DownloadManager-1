@@ -61,16 +61,6 @@ namespace DownloadManager.UI
             manager.Downloads.RemoveAt(downloadsGrid.SelectedIndex);
         }
 
-        private void dataGridConvertTime(object sender, DataGridAutoGeneratingColumnEventArgs e)
-        {
-            if (e.PropertyName == "TotalUsedTime")
-            {
-                DataGridTextColumn column = e.Column as DataGridTextColumn;
-                Binding binding = column.Binding as Binding;
-                binding.StringFormat = "hh:mm:ss";
-            }
-        }
-
         private void downloadsGridSelectionChanged(object sender, RoutedEventArgs e)
         {
             manager.CurrentIndex = downloadsGrid.SelectedIndex;
