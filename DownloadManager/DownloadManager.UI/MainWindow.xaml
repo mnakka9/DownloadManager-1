@@ -23,27 +23,27 @@
             <Grid Margin="0,0,0,-112">
                 <DataGrid Name="downloadsGrid" VerticalContentAlignment="Center" DockPanel.Dock="Top" 
                             IsReadOnly="True" GridLinesVisibility="None" MinRowHeight="22" RowBackground="#FFF9F9F9"
-                            Background="#FFF9F9F9" CanUserResizeRows="False" Margin="10" AutoGeneratingColumn="dataGridConvertTime"
+                            Background="#FFF9F9F9" CanUserResizeRows="False" Margin="10"
                             AutoGenerateColumns="False" SelectionChanged="downloadsGridSelectionChanged">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="File Name" MinWidth="150" Width="150" x:Name="tcFileName" Binding="{Binding Url, Mode=OneWay}" />
+                        <DataGridTextColumn Header="File Name" MinWidth="150" Width="150" x:Name="tcFileName" Binding="{Binding Filename, Mode=OneWay}" />
                         <DataGridTemplateColumn Header="Progress" MinWidth="130" Width="130" x:Name="tcProgress">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <ProgressBar Name="progressBar" Value="{Binding Progress, Mode=OneWay}" VerticalAlignment="Center" Height="16" MinHeight="16" />
+                                    <ProgressBar Name="progressBar" Value="{Binding Progress, Mode=OneWay}" VerticalAlignment="Center" Height="8" />
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" />
-                        <DataGridTextColumn Header="Speed" Binding="{Binding SpeedString}" />
-                        <DataGridTemplateColumn Header="Size" x:Name="tcSize">
+                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" MinWidth="60"/>
+                        <DataGridTextColumn Header="Speed" Binding="{Binding SpeedString}" MinWidth="60" />
+                        <DataGridTemplateColumn Header="Size" x:Name="tcSize" MinWidth="60">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Name="Size" VerticalAlignment="Center" Text="{Binding SizeString}"></TextBlock>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTextColumn Header="Used Time" MinWidth="150" Width="150" x:Name="tcUsedTime" Binding="{Binding TotalUsedTimeString}" />
+                        <DataGridTextColumn Header="Used Time" MinWidth="90" x:Name="tcUsedTime" Binding="{Binding TotalUsedTimeString}" />
                     </DataGrid.Columns>
                 </DataGrid>
             </Grid>            

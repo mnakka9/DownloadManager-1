@@ -488,6 +488,7 @@ namespace DownloadManager.Core.Classes
             OnPropertyChanged("Progress");
             OnPropertyChanged("Status");
             OnPropertyChanged("SpeedString");
+            OnPropertyChanged("DownloadedSize");
         }
 
         protected virtual void OnPropertyChanged(string propertyName)
