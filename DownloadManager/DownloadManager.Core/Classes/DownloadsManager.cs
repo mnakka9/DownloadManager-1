@@ -41,11 +41,6 @@ namespace DownloadManager.Core.Classes
             commandManagers[CurrentIndex].RunCommand(1);
         }
 
-        public override void Resume()
-        {
-            commandManagers[CurrentIndex].Undo();
-        }
-
         public override void Cancel()
         {
             if ((Downloads[CurrentIndex] as Downloader).Status == Enums.DownloadStatus.Paused)
@@ -55,6 +50,10 @@ namespace DownloadManager.Core.Classes
 
         public override void Add(Component d)
         {
+            CommandManager cm = new CommandManager();
+            cm.AddCommand(new DownloadCommand(d));
+            cm.AddCommand(new PauseCommand(d));
+            commandManagers.Add(cm);
             Downloads.Add(d);
         }
 

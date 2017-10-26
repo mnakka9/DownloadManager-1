@@ -18,12 +18,12 @@ namespace DownloadManager.Core.Classes
 
         public void Execute()
         {
-            downloader.Download();
+            downloader.Pause();
         }
 
         public void Undo()
         {
-            downloader.Cancel();
+            downloader.Resume();
         }
     }
 }

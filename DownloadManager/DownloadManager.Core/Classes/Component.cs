@@ -5,7 +5,7 @@
         public abstract void Download();
         public abstract void Pause();
         public abstract void Cancel();
-        public abstract void Resume();
+        public virtual void Resume() { }
         public virtual void Add(Component c) { }
         public virtual void Remove(int index) { }
     }

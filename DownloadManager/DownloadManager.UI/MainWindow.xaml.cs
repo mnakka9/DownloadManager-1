@@ -21,24 +21,27 @@ namespace DownloadManager.UI
             {
                 Folder = @"E:\TestDownloadsFolder"
             };
-            manager.Downloads.Add(d);
+            manager.Add(d);
 
             Downloader d1 = new Downloader("http://download.microsoft.com/download/9/5/A/95A9616B-7A37-4AF6-BC36-D6EA96C8DAAE/dotNetFx40_Full_x86_x64.exe")
             {
                 Folder = @"E:\TestDownloadsFolder"
             };
-            manager.Downloads.Add(d1);
+            manager.Add(d1);
             InitializeComponent();
             downloadsGrid.ItemsSource = manager.Downloads;
         }
 
         private void downloadButtonClick(object sender, RoutedEventArgs e)
         {
-            if ((manager.Downloads[downloadsGrid.SelectedIndex] as Downloader).Status == DownloadStatus.Paused)
-                manager.Downloads[downloadsGrid.SelectedIndex].Resume();
-            else
-                manager.Downloads[downloadsGrid.SelectedIndex].Download();
-            pauseButton.IsEnabled = true;
+            try
+            {
+                manager.CurrentIndex = downloadsGrid.SelectedIndex;
+                manager.Download();
+                pauseButton.IsEnabled = true;
+            }
+            catch { }
+            
         }
 
         private void addButtonClick(object sender, RoutedEventArgs e)
@@ -48,13 +51,13 @@ namespace DownloadManager.UI
 
         private void pauseButtonClick(object sender, RoutedEventArgs e)
         {
-            manager.Downloads[downloadsGrid.SelectedIndex].Pause();
+            manager.Pause();
             pauseButton.IsEnabled = false;
         }
 
         private void deleteButtonClick(object sender, RoutedEventArgs e)
         {
-            manager.Downloads[downloadsGrid.SelectedIndex].Cancel();
+            manager.Cancel();
             manager.Downloads.RemoveAt(downloadsGrid.SelectedIndex);
         }
 
@@ -66,6 +69,11 @@ namespace DownloadManager.UI
                 Binding binding = column.Binding as Binding;
                 binding.StringFormat = "hh:mm:ss";
             }
+        }
+
+        private void downloadsGridSelectionChanged(object sender, RoutedEventArgs e)
+        {
+            manager.CurrentIndex = downloadsGrid.SelectedIndex;
         }
     }
 }

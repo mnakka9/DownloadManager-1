@@ -23,7 +23,8 @@
             <Grid Margin="0,0,0,-112">
                 <DataGrid Name="downloadsGrid" VerticalContentAlignment="Center" DockPanel.Dock="Top" 
                             IsReadOnly="True" GridLinesVisibility="None" MinRowHeight="22" RowBackground="#FFF9F9F9"
-                            Background="#FFF9F9F9" CanUserResizeRows="False" Margin="10" AutoGeneratingColumn="dataGridConvertTime" AutoGenerateColumns="False">
+                            Background="#FFF9F9F9" CanUserResizeRows="False" Margin="10" AutoGeneratingColumn="dataGridConvertTime"
+                            AutoGenerateColumns="False" SelectionChanged="downloadsGridSelectionChanged">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="File Name" MinWidth="150" Width="150" x:Name="tcFileName" Binding="{Binding Url, Mode=OneWay}" />
                         <DataGridTemplateColumn Header="Progress" MinWidth="130" Width="130" x:Name="tcProgress">
