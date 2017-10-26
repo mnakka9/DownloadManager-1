@@ -40,15 +40,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Classes\CommandManager.cs" />
     <Compile Include="Classes\Component.cs" />
+    <Compile Include="Classes\DownloadCommand.cs" />
     <Compile Include="Classes\Downloader.cs" />
     <Compile Include="Classes\DownloaderHelper.cs" />
     <Compile Include="Classes\DownloadsManager.cs" />
     <Compile Include="Classes\HttpDownloadClient.cs" />
+    <Compile Include="Classes\PauseCommand.cs" />
     <Compile Include="Classes\StringsFormatter.cs" />
     <Compile Include="DownloadEventArgs\DownloadCompletedEventArgs.cs" />
     <Compile Include="DownloadEventArgs\DownloadProgressChangedEventArgs.cs" />
     <Compile Include="Enums\DownloadStatus.cs" />
+    <Compile Include="Interfaces\ICommand.cs" />
     <Compile Include="Interfaces\IDownloader.cs" />
     <Compile Include="Interfaces\IObservable.cs" />
     <Compile Include="Interfaces\IObserver.cs" />
