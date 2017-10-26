@@ -5,16 +5,25 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DownloadManager.UI"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
+        Title="MainWindow" Height="496" Width="600">
     <Grid>
-        <DockPanel LastChildFill="True" Margin="0,0,0,112">
-            <Grid DockPanel.Dock="Top" Name="toolsGrid" Height="79">
-                <Button Name="downloadButton" Click="downloadButtonClick" Margin="10,10,406,27">Download</Button>
+        <DockPanel LastChildFill="True" Margin="0,0,0,112">            
+            <Grid DockPanel.Dock="Top" Name="toolsGrid" Height="60">
+                <StackPanel Margin="0,0,352,0" Orientation="Horizontal" HorizontalAlignment="Stretch">
+                    <Button Name="addButton" Click="addButtonClick" MinWidth="60">Add</Button>
+                    <Button x:Name="downloadButton" Click="downloadButtonClick" MinWidth="60">Download</Button>
+                    <Button x:Name="pauseButton" Click="pauseButtonClick" MinWidth="60">Pause</Button>
+                    <Button x:Name="deleteButton" Click="deleteButtonClick" MinWidth="60">Delete</Button>
+                </StackPanel>
+                
+                <Grid Name="findGrid" Margin="312,0,0,0" Background="AliceBlue"> 
+                    
+                </Grid>
             </Grid>
-            <Grid>
+            <Grid Margin="0,0,0,-112">
                 <DataGrid Name="downloadsGrid" VerticalContentAlignment="Center" DockPanel.Dock="Top" 
                             IsReadOnly="True" GridLinesVisibility="None" MinRowHeight="22" RowBackground="#FFF9F9F9"
-                            Background="#FFF9F9F9" CanUserResizeRows="False">
+                            Background="#FFF9F9F9" CanUserResizeRows="False" Margin="10" AutoGeneratingColumn="dataGridConvertTime" AutoGenerateColumns="False">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="File Name" MinWidth="150" Width="150" x:Name="tcFileName" Binding="{Binding Url, Mode=OneWay}" />
                         <DataGridTemplateColumn Header="Progress" MinWidth="130" Width="130" x:Name="tcProgress">
@@ -24,11 +33,19 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTextColumn Header="Status" Binding="{Binding Status}"></DataGridTextColumn>
-                        <DataGridTextColumn Header="Downloaded Size" Binding="{Binding DownloadedSize}"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" />
+                        <DataGridTextColumn Header="Speed" Binding="{Binding SpeedString}" />
+                        <DataGridTemplateColumn Header="Size" x:Name="tcSize">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Name="Size" VerticalAlignment="Center" Text="{Binding SizeString}"></TextBlock>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Used Time" MinWidth="150" Width="150" x:Name="tcUsedTime" Binding="{Binding TotalUsedTimeString}" />
                     </DataGrid.Columns>
                 </DataGrid>
-            </Grid>
+            </Grid>            
         </DockPanel>
     </Grid>
 </Window>

@@ -44,6 +44,7 @@
     <Compile Include="Classes\DownloaderHelper.cs" />
     <Compile Include="Classes\DownloadsManager.cs" />
     <Compile Include="Classes\HttpDownloadClient.cs" />
+    <Compile Include="Classes\StringsFormatter.cs" />
     <Compile Include="DownloadEventArgs\DownloadCompletedEventArgs.cs" />
     <Compile Include="DownloadEventArgs\DownloadProgressChangedEventArgs.cs" />
     <Compile Include="Enums\DownloadStatus.cs" />

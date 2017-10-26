@@ -193,8 +193,12 @@ namespace DownloadManager.Core.Classes
                 throw new ApplicationException("Only paused client can be resumed.");
 
             Status = DownloadStatus.Waiting;
-            
-            DownloadInternal();
+
+            DownloadThread = new Thread(new ThreadStart(DownloadInternal))
+            {
+                IsBackground = true
+            };
+            DownloadThread.Start();            
         }
         
         public void Cancel()

@@ -31,7 +31,24 @@ namespace DownloadManager.Core.Classes
         
         public long EndPoint { get; set; }
         
-        public string DownloadPath { get; set; }
+        public string Folder { get; set; }
+
+        public string DownloadPath
+        {
+            get
+            {
+                return Folder + @"\" + Filename;
+            }
+            set { }
+        }
+
+        public string Filename
+        {
+            get
+            {
+                return Url.AbsolutePath.Split('/').Last();
+            }
+        }
         
         public IWebProxy Proxy { get; set; }
         
@@ -42,6 +59,30 @@ namespace DownloadManager.Core.Classes
                 return downloadClients.Sum(client => client.DownloadedSize);
             }
         }
+
+        public string SizeString
+        {
+            get
+            {
+                return StringsFormatter.FormatSizeString(DownloadedSize);
+            }
+        }
+
+        public string SpeedString
+        {
+            get
+            {
+                return StringsFormatter.FormatSpeedString(Speed);
+            }
+        }
+
+        public string TotalUsedTimeString
+        {
+            get
+            {
+                return StringsFormatter.FormatTimeSpanString(TotalUsedTime);
+            }
+        }        
 
         public int CachedSize
         {
@@ -62,6 +103,8 @@ namespace DownloadManager.Core.Classes
             }
         }
 
+        public DateTime LastUpdateTime { get; set; }
+
         private TimeSpan usedTime = new TimeSpan();
 
         private DateTime lastStartTime;
@@ -79,6 +122,8 @@ namespace DownloadManager.Core.Classes
         
         private DateTime lastNotificationTime;
         private long lastNotificationDownloadedSize;
+
+        public int Speed { get; set; }
         
         public int BufferCountPerNotification { get; set; }
         
@@ -141,7 +186,7 @@ namespace DownloadManager.Core.Classes
             EndPoint = long.MaxValue;
             BufferSize = bufferSize;
             MaxCacheSize = cacheSize;
-            BufferCountPerNotification = bufferCountPerNotification;
+            BufferCountPerNotification = bufferCountPerNotification;            
 
             MaxThreadCount = maxThreadCount;
             
@@ -202,11 +247,12 @@ namespace DownloadManager.Core.Classes
 
             Status = DownloadStatus.Waiting;
 
+            LastUpdateTime = DateTime.Now;
             DownloadThread = new Thread(new ThreadStart(DownloadInternal))
             {
                 IsBackground = true
             };
-            DownloadThread.Start();
+            DownloadThread.Start();            
         }
 
         void DownloadInternal()
@@ -275,7 +321,6 @@ namespace DownloadManager.Core.Classes
                 }
                 
                 lastStartTime = DateTime.Now;
-                
                 foreach (var client in downloadClients)
                 {
                     if (Proxy != null)
@@ -303,8 +348,7 @@ namespace DownloadManager.Core.Classes
             Status = DownloadStatus.Pausing;
             
             foreach (var client in downloadClients)
-                if (client.Status == DownloadStatus.Downloading)
-                    client.Pause();
+                client.Pause();
         }
         
         public void Resume()
@@ -336,6 +380,18 @@ namespace DownloadManager.Core.Classes
 
         }
 
+        private void UpgradeProperties()
+        {
+            if (DateTime.Now > LastUpdateTime.AddSeconds(1))
+            {
+                OnPropertyChanged("SpeedString");
+                OnPropertyChanged("TotalUsedTimeString");
+                LastUpdateTime = DateTime.Now;
+            }
+            OnPropertyChanged("SizeString");
+            OnPropertyChanged("Progress");
+        }
+        
         #endregion
 
         #region EventHandlers
@@ -369,13 +425,18 @@ namespace DownloadManager.Core.Classes
                 TimeSpan interval = current - lastNotificationTime;
 
                 if (interval.TotalSeconds < 60)
+                {
                     speed = (int)Math.Floor((DownloadedSize + CachedSize - lastNotificationDownloadedSize) / interval.TotalSeconds);
+                    Speed = speed;                    
+                }
+                    
 
                 lastNotificationTime = current;
                 lastNotificationDownloadedSize = DownloadedSize + CachedSize;
 
                 var downloadProgressChangedEventArgs = new DownloadEventArgs.DownloadProgressChangedEventArgs(DownloadedSize, TotalSize, speed);
-                OnDownloadProgressChanged(downloadProgressChangedEventArgs);
+                                   
+                UpgradeProperties();
             }
         }
         
@@ -386,12 +447,6 @@ namespace DownloadManager.Core.Classes
                 Cancel();
                 OnDownloadCompleted(new DownloadCompletedEventArgs(null, DownloadedSize, TotalSize, TotalUsedTime, e.Error));
             }
-        }
-        
-        protected virtual void OnDownloadProgressChanged(DownloadEventArgs.DownloadProgressChangedEventArgs e)
-        { 
-            OnPropertyChanged("Progress");
-            OnPropertyChanged("DownloadedSize");
         }
         
         protected virtual void OnStatusChanged(EventArgs e)
@@ -415,6 +470,7 @@ namespace DownloadManager.Core.Classes
         {
             OnPropertyChanged("Progress");
             OnPropertyChanged("Status");
+            OnPropertyChanged("SpeedString");
         }
 
         protected virtual void OnPropertyChanged(string propertyName)
