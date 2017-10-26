@@ -1,20 +1,52 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace DownloadManager.Core.Classes
 {
-    public class DownloadsManager
+    public class DownloadsManager: Component
     {
-        public List<Downloader> Downloads = new List<Downloader>();
+        public List<Component> Downloads = new List<Component>();
 
-        public DownloadsManager() : this(new List<Downloader>()) { }
+        public Component CurrentDownloader { get; set; }
 
-        public DownloadsManager(List<Downloader> downloads)
+        public DownloadsManager() : this(new List<Component>()) { }
+
+        public DownloadsManager(List<Component> downloads)
         {
             Downloads = downloads;
+        }
+
+        public override void Download()
+        {
+            if (CurrentDownloader != null)
+                CurrentDownloader.Download();
+        }
+
+        public override void Pause()
+        {
+            if (CurrentDownloader != null)
+                CurrentDownloader.Pause();
+        }
+
+        public override void Resume()
+        {
+            if (CurrentDownloader != null)
+                CurrentDownloader.Resume();
+        }
+
+        public override void Cancel()
+        {
+            if (CurrentDownloader != null)
+                CurrentDownloader.Cancel();
+        }
+
+        public override void Add(Component d)
+        {
+            Downloads.Add(d);
+        }
+
+        public override void Remove(int index)
+        {
+            Downloads.RemoveAt(index);
         }
     }
 }

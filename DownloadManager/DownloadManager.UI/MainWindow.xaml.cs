@@ -15,7 +15,7 @@ namespace DownloadManager.UI
         {
             manager = new DownloadsManager()
             {
-                Downloads = new List<Downloader>()
+                Downloads = new List<Component>()
             };
             Downloader d = new Downloader("http://www.sample-videos.com/video/mp4/720/big_buck_bunny_720p_10mb.mp4")
             {
@@ -34,7 +34,7 @@ namespace DownloadManager.UI
 
         private void downloadButtonClick(object sender, RoutedEventArgs e)
         {
-            if (manager.Downloads[downloadsGrid.SelectedIndex].Status == DownloadStatus.Paused)
+            if ((manager.Downloads[downloadsGrid.SelectedIndex] as Downloader).Status == DownloadStatus.Paused)
                 manager.Downloads[downloadsGrid.SelectedIndex].Resume();
             else
                 manager.Downloads[downloadsGrid.SelectedIndex].Download();

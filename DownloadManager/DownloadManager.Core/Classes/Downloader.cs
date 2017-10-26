@@ -11,7 +11,7 @@ using DownloadManager.Core.DownloadEventArgs;
 
 namespace DownloadManager.Core.Classes
 {
-    public class Downloader : IDownloader, INotifyPropertyChanged, IObservable
+    public class Downloader : Component, IDownloader, INotifyPropertyChanged, IObservable
     {
         #region Fields and Properties
 
@@ -240,7 +240,7 @@ namespace DownloadManager.Core.Classes
                 throw new ArgumentOutOfRangeException("maxThreadCount cannot be less than 1. ");
         }
         
-        public void Download()
+        public override void Download()
         {
             if (Status != DownloadStatus.Initialized)
                 throw new ApplicationException("Only Initialized download client can be started.");
@@ -336,7 +336,7 @@ namespace DownloadManager.Core.Classes
             }
         }
         
-        public void Pause()
+        public override void Pause()
         {
             if (Status != DownloadStatus.Downloading)
                 throw new ApplicationException("Only downloading downloader can be paused.");
@@ -346,7 +346,7 @@ namespace DownloadManager.Core.Classes
             UpdateObservers(DownloadStatus.Paused);
         }
         
-        public void Resume()
+        public override void Resume()
         {
             if (Status != DownloadStatus.Paused)
                 throw new ApplicationException("Only paused downloader can be resumed. ");
@@ -360,7 +360,7 @@ namespace DownloadManager.Core.Classes
                     client.Resume();
         }        
         
-        public void Cancel()
+        public override void Cancel()
         {
             if (Status == DownloadStatus.Initialized || Status == DownloadStatus.Waiting || Status == DownloadStatus.Completed
                 || Status == DownloadStatus.Paused || Status == DownloadStatus.Canceled)

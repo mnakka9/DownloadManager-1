@@ -40,6 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Classes\Component.cs" />
     <Compile Include="Classes\Downloader.cs" />
     <Compile Include="Classes\DownloaderHelper.cs" />
     <Compile Include="Classes\DownloadsManager.cs" />
